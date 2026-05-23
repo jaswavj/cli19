@@ -1,0 +1,156 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" import= "java.util.*"%>
+<%@ page import="java.text.SimpleDateFormat, java.util.Date" %>
+<jsp:useBean id="bill" class="billing.billingBean" />
+<%
+    int billId = Integer.parseInt(request.getParameter("billId"));
+    Vector details = bill.getBillDetails(billId);
+    double total = 0;
+double prodDiscount = 0;
+double extraDiscount = 0;
+double payable = 0;
+double paid = 0;
+double cash = 0;
+double bank = 0;
+double balance = 0;
+double currentBalance = 0;
+
+Vector billInfo = bill.getExtraDisc(billId);
+if (billInfo != null && !billInfo.isEmpty()) {
+    total        = Double.parseDouble(billInfo.elementAt(0).toString());
+    prodDiscount = Double.parseDouble(billInfo.elementAt(1).toString());
+    extraDiscount= Double.parseDouble(billInfo.elementAt(2).toString());
+    payable      = Double.parseDouble(billInfo.elementAt(3).toString());
+    paid         = Double.parseDouble(billInfo.elementAt(4).toString());
+    cash         = Double.parseDouble(billInfo.elementAt(5).toString());
+    bank         = Double.parseDouble(billInfo.elementAt(6).toString());
+    balance      = Double.parseDouble(billInfo.elementAt(7).toString());
+    currentBalance      = Double.parseDouble(billInfo.elementAt(8).toString());
+} else {
+    out.print("<p style='color:red'>No bill info found for Bill No: " + billId + "</p>");
+}
+
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bill Details</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS -->
+<%@ include file="/assets/common/head.jsp" %>
+    
+ 
+</head>
+<body>
+
+    <%@ include file="/assets/navbar/navbar.jsp" %>
+<%
+    request.setAttribute("pageTitle",    "Cancel Bill");
+    request.setAttribute("pageSubtitle", "Admin — Bill Management");
+    request.setAttribute("pageIcon",     "fa-solid fa-ban");
+%>
+<jsp:include page="/assets/common/pageHeader.jsp" />
+
+<div class="container-fluid mt-3 mst-page">
+        <h4>Bill Details (Bill No: <%= billId %>)</h4>
+    <table class="table mst-table table-sm mt-3">
+        <thead>
+            <tr>
+                <th>S.No</th>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Discount</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+        <%
+            for (int i = 0; i < details.size(); i++) {
+                Vector row = (Vector) details.elementAt(i);
+        %>
+            <tr>
+                <td><%= i+1 %></td>
+                <td><%= row.elementAt(3) %></td> <!-- product_name -->
+                <td><%= row.elementAt(4) %></td> <!-- qty -->
+                <td><%= row.elementAt(5) %></td> <!-- price -->
+                <td><%= row.elementAt(6) %></td> <!-- discount -->
+                <td><%= row.elementAt(7) %></td> <!-- total -->
+            </tr>
+        <%
+            }
+        %>
+        </tbody>
+    </table>
+    <div class="row mt-4">
+    <!-- Left: Cancel reason -->
+    <div class="col-md-6">
+        <form action="<%= request.getContextPath() %>/admin/editBill/cancelAction.jsp" method="post">
+            <input type="hidden" name="billId" value="<%= billId %>">
+
+            <div class="mb-3">
+                <label for="cancelReason" class="form-label fw-bold">Reason for Cancellation</label>
+                <textarea class="form-control fg-inp" id="cancelReason" name="cancelReason"
+                          rows="5" placeholder="Enter reason..." required></textarea>
+            </div>
+
+            <div class="mt-3">
+                <button type="submit" class="bb bb-primary"><i class="fa-solid fa-ban"></i> Cancel Bill</button>
+                <button type="button" class="bb bb-outline" onclick="window.history.back();"><i class="fa-solid fa-arrow-left"></i> Back</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Right: Totals table -->
+    <div class="col-md-6">
+        <table class="table mst-table">
+            <tr>
+                <th>Total</th>
+                <td><%= total %></td>
+            </tr>
+            <tr>
+                <th>Product Discount</th>
+                <td><%= prodDiscount %></td>
+            </tr>
+            <tr>
+                <th>Extra Discount</th>
+                <td><%= extraDiscount %></td>
+            </tr>
+            <tr>
+                <th>Payable</th>
+                <td><%= payable %></td>
+            </tr>
+            <tr class="table-success">
+                <th>Paid</th>
+                <td><%= paid %></td>
+            </tr>
+            <tr class="table-success">
+                <th>Cash Paid</th>
+                <td><%= cash %></td>
+            </tr>
+            <tr class="table-success">
+                <th>Bank Paid</th>
+                <td><%= bank %></td>
+            </tr>
+            <tr class="table-danger">
+                <th>Balance</th>
+                <td><%= balance %></td>
+            </tr>
+            <tr class="table-danger">
+                <th>Pending Balance</th>
+                <td><%= currentBalance %></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+    
+
+</div>
+
+    <!-- Bootstrap JS -->
+     
+
+</body>
+</html>

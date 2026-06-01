@@ -396,7 +396,7 @@ int userDiscPer = (uid != null) ? userBn.getUserDiscPer(uid) : 100;
                 <input type="text" id="customerPhn" class="fg-inp" placeholder="Phone number" autocomplete="off">
             </div>
             <label class="tog">
-                <input class="form-check-input" type="checkbox" id="isTaxBill" checked>
+                <input class="form-check-input" type="checkbox" id="isTaxBill">
                 <span class="tog-lbl"><i class="fa-solid fa-receipt"></i> Tax Bill</span>
             </label>
             <label class="tog">

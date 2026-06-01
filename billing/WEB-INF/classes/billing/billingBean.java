@@ -2711,6 +2711,25 @@ finally
 		}
 	}
 	}
+public int getIsTaxBill(String bill) throws Exception {
+	Connection con = null;
+	PreparedStatement pt = null;
+	ResultSet rs = null;
+	try {
+		con = util.DBConnectionManager.getConnectionFromPool();
+		pt = con.prepareStatement("SELECT is_tax_bill FROM prod_bill WHERE bill_display=?");
+		pt.setString(1, bill);
+		rs = pt.executeQuery();
+		if (rs.next()) {
+			return rs.getInt(1);
+		}
+		return 1;
+	} finally {
+		if (pt != null) { try { pt.close(); } catch (SQLException e) { } pt = null; }
+		if (rs != null) { try { rs.close(); } catch (SQLException e) { } rs = null; }
+		if (con != null) { try { con.close(); } catch (Exception e) {} con = null; }
+	}
+}
 public Vector getDueCollection(String from, String to) throws Exception {
     Connection con = null;
     PreparedStatement ps = null;

@@ -14,7 +14,7 @@ public final class DBConnectionManager
 			{
 			Context initCtx = new InitialContext();
 			Context envCtx 	= (Context) initCtx.lookup("java:comp/env"); 
-			ds 		= (DataSource)envCtx.lookup("jdbc/retaildb"); 
+			ds 		= (DataSource)envCtx.lookup("jdbc/electricaldb"); 
 			System.out.println("Connection Created by Pooling Method"); 
 			}
 		catch(Exception e)

@@ -436,9 +436,14 @@ String type = request.getParameter("type"); // success / warning / danger / info
                 <tr style="border-bottom: 1px solid #f1f5f9; transition: all 0.2s;">
                     <td style="padding: 0.4rem; color: #718096; border: none; width: 5%;">${product.index}</td>
                     <td style="padding: 0.4rem; text-align: center; border: none; width: 10%;">
-                        <button onclick="populateForm(${JSON.stringify(product).replace(/"/g, '&quot;')})" class="btn btn-sm" style="background: var(--primary-gradient); color: white; padding: 3px 10px; border-radius: 5px; border: none; font-weight: 500; font-size: 0.8rem;">
+                        <div class="d-flex gap-1 justify-content-center">
+                        <button onclick="populateForm(${JSON.stringify(product).replace(/"/g, '&quot;')})" class="btn btn-sm" style="background: var(--primary-gradient); color: white; padding: 3px 8px; border-radius: 5px; border: none; font-weight: 500; font-size: 0.8rem;">
                             <i class="fas fa-edit me-1"></i>Edit
                         </button>
+                        <button onclick="blockProduct(${product.productId}, '${product.productName.replace(/'/g, "\\'")}')" class="btn btn-sm" style="background: #e53e3e; color: white; padding: 3px 8px; border-radius: 5px; border: none; font-weight: 500; font-size: 0.8rem;" title="Block Product">
+                            <i class="fas fa-ban"></i>
+                        </button>
+                        </div>
                     </td>
                     <td style="padding: 0.4rem; color: #2d3748; font-weight: 500; border: none; width: 18%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${product.productName}">${product.productName}</td>
                     <td style="padding: 0.4rem; color: #718096; border: none; width: 10%;"><span class="badge bg-secondary">${product.prodCode || '-'}</span></td>
@@ -697,6 +702,22 @@ String type = request.getParameter("type"); // success / warning / danger / info
         handleUnitChange(unitSelect);
         updateStockConversionNote();
         updateConvertedPriceNotes();
+    }
+
+    // Block product
+    function blockProduct(productId, productName) {
+        if (!confirm('Block product "' + productName + '"?\nIt will no longer appear in billing.')) return;
+
+        fetch(contextPath + '/product/master/product/block.jsp?id=' + productId + '&action=block')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadProducts(currentPage, currentSearch);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(err => alert('Error blocking product. Please try again.'));
     }
 
     // Load products on page load

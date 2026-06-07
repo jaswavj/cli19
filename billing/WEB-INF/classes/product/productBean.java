@@ -1493,6 +1493,25 @@ public void blockProduct(int id)throws Exception
 			}
 		}
 	}
+public void updateProductStatus(int id, int isActive) throws Exception {
+    Connection con = null;
+    PreparedStatement pt = null;
+    try {
+        con = util.DBConnectionManager.getConnectionFromPool();
+        con.setAutoCommit(false);
+        pt = con.prepareStatement("UPDATE prod_product SET is_active = ? WHERE id = ?");
+        pt.setInt(1, isActive);
+        pt.setInt(2, id);
+        pt.executeUpdate();
+        con.commit();
+    } catch (Exception e) {
+        if (con != null) con.rollback();
+        throw e;
+    } finally {
+        if (pt != null) try { pt.close(); } catch (Exception e) {}
+        if (con != null) try { con.close(); } catch (Exception e) {}
+    }
+}
 //////////////////////////////////////////////////
 /*public void editProduct(int productId,String newProduct,String proCode,int categoryId,int brandId,double mrp,double cost,double discValue,int discType)throws Exception
 	{

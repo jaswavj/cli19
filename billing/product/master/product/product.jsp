@@ -138,7 +138,7 @@ String type = request.getParameter("type"); // success / warning / danger / info
                             </div>
                             
                             <div class="col-md-6 ">
-                                <label style="font-size: 0.85rem;">Stock</label><input type="number" name="stock" id="stockInput" class="form-control" placeholder="" style="padding: 7px 10px; font-size: 0.9rem;" min="0" step="0.01" value="0" required>
+                                <label id="stockLabel" style="font-size: 0.85rem;">Stock</label><input type="number" name="stock" id="stockInput" class="form-control" placeholder="" style="padding: 7px 10px; font-size: 0.9rem;" min="0" step="0.01" value="0" required>
                                 <small id="stockConversionNote" class="text-muted d-block mt-1"></small>
                             </div>
                             
@@ -154,17 +154,8 @@ String type = request.getParameter("type"); // success / warning / danger / info
                                 <label style="font-size: 0.85rem;">Commission (Rs)</label><input type="number" step="0.01" name="commission" id="commissionInput" class="form-control" placeholder="0.00" style="padding: 7px 10px; font-size: 0.9rem;" value="0.00">
                                 <small id="commissionConversionNote" class="text-muted d-block mt-1"></small>
                             </div>
-                            <div class="col-md-6 ">
-                                <label style="font-size: 0.85rem;">Discount Type</label>
-                                <select class="form-select" id="discType" name="discType" onchange="handleDiscTypeChange(this)" style="padding: 7px 10px; font-size: 0.9rem;" required>
-                                    <option value="0">Select Type</option>
-                                    <option value="1">Rs</option>
-                                    <option value="2">%</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 ">
-                                <label id="discountLabel" style="font-size: 0.85rem;">Discount</label><input type="text" id="discValue" name="discValue" class="form-control" value="0.00" style="padding: 7px 10px; font-size: 0.9rem;" readonly>
-                            </div>
+                            <input type="hidden" id="discType" name="discType" value="0">
+                            <input type="hidden" id="discValue" name="discValue" value="0.00">
                             
                             <div class="col-md-6">
                                 <label style="font-size: 0.85rem;">GST %</label>
@@ -335,18 +326,21 @@ String type = request.getParameter("type"); // success / warning / danger / info
 
     function handleUnitChange(select) {
         const selectedText = select.options[select.selectedIndex].text;
+        const stockLabel = document.getElementById('stockLabel');
         const costPriceLabel = document.getElementById('costPriceLabel');
         const mrpLabel = document.getElementById('mrpLabel');
         const discountLabel = document.getElementById('discountLabel');
         
         if (select.value === "") {
+            stockLabel.textContent = "Stock";
             costPriceLabel.textContent = "Cost Price";
             mrpLabel.textContent = "MRP";
-            discountLabel.textContent = "Discount";
+            if (discountLabel) discountLabel.textContent = "Discount";
         } else {
+            stockLabel.textContent = "Stock (" + selectedText + ")";
             costPriceLabel.textContent = "Cost Price per " + selectedText;
             mrpLabel.textContent = "MRP per " + selectedText;
-            discountLabel.textContent = "Discount per " + selectedText;
+            if (discountLabel) discountLabel.textContent = "Discount per " + selectedText;
         }
 
         updateStockConversionNote();
@@ -355,6 +349,7 @@ String type = request.getParameter("type"); // success / warning / danger / info
     
     function handleDiscTypeChange(select) {
         const discValueInput = document.getElementById('discValue');
+        if (!discValueInput) return;
         if (select.value === "0") {
             discValueInput.value = "0.00";
             discValueInput.readOnly = true;
@@ -368,6 +363,24 @@ String type = request.getParameter("type"); // success / warning / danger / info
     let currentPage = 1;
     let currentSearch = '';
     let searchTimeout = null;
+    let maxProductCode = '';
+
+    function applyMaxProductCode() {
+        const form = document.getElementById('productForm');
+        const editProductId = document.getElementById('editProductId');
+        const productCodeInput = form ? form.querySelector('[name="productCode"]') : null;
+
+        if (!productCodeInput || !editProductId) {
+            return;
+        }
+
+        if (editProductId.value !== '0') {
+            productCodeInput.placeholder = '';
+            return;
+        }
+
+        productCodeInput.placeholder = maxProductCode || '';
+    }
 
     // Load products with pagination and search
     function loadProducts(page = 1, search = '') {
@@ -389,6 +402,8 @@ String type = request.getParameter("type"); // success / warning / danger / info
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    maxProductCode = data.maxProductCode || '';
+                    applyMaxProductCode();
                     displayProducts(data);
                     updatePagination(data);
                 } else {
@@ -584,9 +599,10 @@ String type = request.getParameter("type"); // success / warning / danger / info
         const form = document.getElementById('productForm');
         form.querySelector('[name="productName"]').value = product.productName || '';
         form.querySelector('[name="productCode"]').value = product.prodCode || '';
+        form.querySelector('[name="productCode"]').placeholder = '';
         form.querySelector('[name="hsn"]').value = product.hsn || '';
         form.querySelector('[name="commission"]').value = product.commission || '0.00';
-        form.querySelector('[name="discValue"]').value = product.discount || '0.00';
+        form.querySelector('[name="discValue"]').value = '0.00';
         form.querySelector('[name="stock"]').value = '';
         form.querySelector('[name="stock"]').removeAttribute('required');
         form.querySelector('[name="stock"]').disabled = true;
@@ -629,11 +645,9 @@ String type = request.getParameter("type"); // success / warning / danger / info
 
         // Set discount type
         const discTypeSelect = document.getElementById('discType');
-        for (let opt of discTypeSelect.options) {
-            if (opt.value == product.discType) { opt.selected = true; break; }
-        }
+        discTypeSelect.value = '0';
         handleDiscTypeChange(discTypeSelect);
-        document.getElementById('discValue').value = product.discount || '0.00';
+        document.getElementById('discValue').value = '0.00';
 
         // Update button
         document.getElementById('submitBtnText').textContent = 'Update';
@@ -679,9 +693,11 @@ String type = request.getParameter("type"); // success / warning / danger / info
         document.getElementById('commissionInput').value = '0.00';
 
         // Reset labels
+        document.getElementById('stockLabel').textContent = 'Stock';
         document.getElementById('costPriceLabel').textContent = 'Cost Price';
         document.getElementById('mrpLabel').textContent = 'MRP';
-        document.getElementById('discountLabel').textContent = 'Discount';
+        const discountLabel = document.getElementById('discountLabel');
+        if (discountLabel) discountLabel.textContent = 'Discount';
         document.getElementById('costConversionNote').textContent = '';
         document.getElementById('mrpConversionNote').textContent = '';
 
@@ -702,6 +718,7 @@ String type = request.getParameter("type"); // success / warning / danger / info
         handleUnitChange(unitSelect);
         updateStockConversionNote();
         updateConvertedPriceNotes();
+        applyMaxProductCode();
     }
 
     // Block product

@@ -727,7 +727,7 @@ public Vector getUnits() throws Exception
 		
 	Vector units = new Vector();
 
-    pt = con.prepareStatement("SELECT name,id,convertion_unit,convertion_calculation FROM prod_units ORDER BY name");
+    pt = con.prepareStatement("SELECT name,id,convertion_unit,convertion_calculation FROM prod_units WHERE is_active=1 ORDER BY name");
 	rs =pt.executeQuery();
 	while(rs.next())
 		{
@@ -1103,7 +1103,7 @@ public Vector getAllProducts() throws Exception
 							+"	JOIN `prod_category` b ON a.`category_id`=b.id "
 							+"	JOIN `prod_brands` c ON a.`brand_id`=c.id "
 							+"	JOIN `prod_batch` d ON a.id=d.`product_id` "
-							+"	LEFT JOIN `prod_units` e ON a.unit_id=e.id WHERE a.is_active=1 ORDER BY CAST(SUBSTRING(a.code, 2) AS UNSIGNED);");
+							+"	LEFT JOIN `prod_units` e ON a.unit_id=e.id WHERE a.is_active=1 ORDER BY a.code;");
 
 	rs =pt.executeQuery();
 	while(rs.next())

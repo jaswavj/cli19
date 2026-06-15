@@ -9,8 +9,24 @@
     String brandss	   = request.getParameter("brandss");
     double mrp 		   = Double.parseDouble(request.getParameter("mrp").toString());
     double cost 		   = Double.parseDouble(request.getParameter("cost").toString());
-    double discount 		   = Double.parseDouble(request.getParameter("discount").toString());
-	int discType 		   = Integer.parseInt(request.getParameter("discType").toString());
+    String discountParam = request.getParameter("discount");
+    double discount = 0.00;
+    if (discountParam != null && !discountParam.trim().isEmpty()) {
+        try {
+            discount = Double.parseDouble(discountParam);
+        } catch (NumberFormatException e) {
+            discount = 0.00;
+        }
+    }
+    String discTypeParamTop = request.getParameter("discType");
+	int discType = 0;
+    if (discTypeParamTop != null && !discTypeParamTop.trim().isEmpty()) {
+        try {
+            discType = Integer.parseInt(discTypeParamTop);
+        } catch (NumberFormatException e) {
+            discType = 0;
+        }
+    }
 	int gst 			   = Integer.parseInt(request.getParameter("gst").toString());
 	String unitId 		   = request.getParameter("unitId") != null ? request.getParameter("unitId") : "";
 	String hsn 		   = request.getParameter("hsn") != null ? request.getParameter("hsn") : "";
@@ -148,28 +164,8 @@ String type = request.getParameter("type");
                     </div>
                     <div class="col-md-3 input-outline">
                     </div>
-                    <div class="col-md-3 ">
-                        <%
-                        String discTypeParam = request.getParameter("discType");
-                        int discTypes = 0;
-                        if (discTypeParam != null && !discTypeParam.isEmpty()) {
-                            try {
-                                discTypes = Integer.parseInt(discTypeParam);
-                            } catch (NumberFormatException e) {
-                                discTypes = 0; // default
-                            }
-                        }
-                        %>
-                        <select class="form-control" id="discType" name="discType" onchange="handleDiscTypeChange(this)" required>
-                            <option value="0" <%= (discTypes == 0 ? "selected" : "") %>>No Discount</option>
-                            <option value="1" <%= (discTypes == 1 ? "selected" : "") %>>Rs</option>
-                            <option value="2" <%= (discTypes == 2 ? "selected" : "") %>>Percentage</option>
-                        </select>
-                    </div>
-
-                    <div class="col-md-3 input-outline">
-                        <input type="text"  id="discValue"  name="discValue" value="<%=discount%>" class="form-control" value="0.00" required><label >Discount</label>
-                    </div>
+                    <input type="hidden" id="discType" name="discType" value="0">
+                    <input type="hidden" id="discValue" name="discValue" value="0.00">
                     
                     <div class="col-md-12 input-outline">
                         <button type="submit" class="btn btn-primary">Update <%=head3%></button>
@@ -187,6 +183,7 @@ String type = request.getParameter("type");
     <script>
     function handleDiscTypeChange(select) {
         const discValueInput = document.getElementById('discValue');
+        if (!discValueInput) return;
         if (select.value === "0") {
             discValueInput.value = "0.00";
             discValueInput.readOnly  = true;

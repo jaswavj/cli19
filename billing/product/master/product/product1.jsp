@@ -25,7 +25,15 @@ if (commissionParam != null && !commissionParam.trim().isEmpty()) {
     try { commission = Double.parseDouble(commissionParam); } catch (NumberFormatException e) { commission = 0.0; }
 }
 
-int discType = Integer.parseInt(request.getParameter("discType"));
+String discTypeParam = request.getParameter("discType");
+int discType = 0;
+if (discTypeParam != null && !discTypeParam.trim().isEmpty()) {
+    try {
+        discType = Integer.parseInt(discTypeParam);
+    } catch (NumberFormatException e) {
+        discType = 0;
+    }
+}
 String discParam = request.getParameter("discValue");
 double discValue = 0.00;
 

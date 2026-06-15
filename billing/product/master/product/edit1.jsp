@@ -34,8 +34,14 @@ int brandId        = Integer.parseInt(brandIdParam != null ? brandIdParam : "0")
 
 double mrp         = Double.parseDouble(mrpParam != null ? mrpParam : "0");
 double cost        = Double.parseDouble(costParam != null ? costParam : "0");
-double discValue   = Double.parseDouble(discValueParam != null ? discValueParam : "0");
-int discType       = Integer.parseInt(discTypeParam != null ? discTypeParam : "0");
+double discValue = 0.0;
+if (discValueParam != null && !discValueParam.trim().isEmpty()) {
+    try { discValue = Double.parseDouble(discValueParam); } catch (NumberFormatException e) { discValue = 0.0; }
+}
+int discType = 0;
+if (discTypeParam != null && !discTypeParam.trim().isEmpty()) {
+    try { discType = Integer.parseInt(discTypeParam); } catch (NumberFormatException e) { discType = 0; }
+}
 int gst            = Integer.parseInt(gstParam != null ? gstParam : "0");
 int unitId         = Integer.parseInt(unitIdParam != null ? unitIdParam : "0");
 String hsn         = request.getParameter("hsn");

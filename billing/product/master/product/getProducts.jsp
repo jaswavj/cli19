@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="application/json; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.util.*, org.json.*"%>
+<%@ page import="java.util.*, java.sql.*, org.json.*"%>
 <jsp:useBean id="prod" class="product.productBean" />
 <%
     try {
@@ -32,6 +32,23 @@
         
         JSONObject result = new JSONObject();
         JSONArray productsArray = new JSONArray();
+        String maxProductCode = "";
+
+        Connection lastCodeCon = null;
+        PreparedStatement lastCodePt = null;
+        ResultSet lastCodeRs = null;
+        try {
+            lastCodeCon = util.DBConnectionManager.getConnectionFromPool();
+            lastCodePt = lastCodeCon.prepareStatement("SELECT code FROM prod_product WHERE is_active=1 AND code IS NOT NULL AND code <> '' ORDER BY CAST(code AS UNSIGNED) DESC, code DESC LIMIT 1");
+            lastCodeRs = lastCodePt.executeQuery();
+            if (lastCodeRs.next() && lastCodeRs.getString(1) != null) {
+                maxProductCode = lastCodeRs.getString(1);
+            }
+        } finally {
+            if (lastCodeRs != null) try { lastCodeRs.close(); } catch (SQLException e) {}
+            if (lastCodePt != null) try { lastCodePt.close(); } catch (SQLException e) {}
+            if (lastCodeCon != null) try { lastCodeCon.close(); } catch (SQLException e) {}
+        }
         
         // Build unit lookup map: unitId -> [unitName, convertionUnit]
         HashMap<String, String[]> unitMap = new HashMap<String, String[]>();
@@ -133,6 +150,7 @@
             result.put("pageSize", pageSize);
             result.put("success", true);
         }
+        result.put("maxProductCode", maxProductCode);
         
         out.print(result.toString());
         

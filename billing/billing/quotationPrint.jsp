@@ -110,7 +110,7 @@ for(Vector prod : quotDetails){
     <!-- Title & Info Row -->
     <div class="title-row">
         <div style="line-height:1.7;">
-            <div>QuotNo: <%= quotNo %></div>
+            <div>Bill No: <%= quotNo %></div>
             <div>Customer: <%= cusName %></div>
             <% if (!cusPhone.equals("-") && !cusPhone.trim().isEmpty()) { %>
             <div>Phone: <%= cusPhone %></div>

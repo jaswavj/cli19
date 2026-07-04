@@ -914,9 +914,13 @@ function fetchProductDetails(code) {
     $.ajax({
         url: contextPath + "/billing/details.jsp",
         type: "GET",
+        dataType: "json",
         data: { code: code, priceCategory: priceCategory },
-        success: function (response) {
-            const data = JSON.parse(response);
+        success: function (data) {
+            if (data.error) {
+                console.error("Product not found:", data.error);
+                return;
+            }
 
             $('#productName').val(data.name).prop('disabled', true);
             $('#productPrice').val(data.mrp);
@@ -1002,8 +1006,11 @@ function fetchProductDetailsByName(name) {
         type: "GET",
         dataType: "json",      // important
         data: { productName: name, priceCategory: priceCategory },
-        success: function (data) {   // data is already an object
-            //alert(JSON.stringify(data));
+        success: function (data) {
+            if (data.error) {
+                console.error("Product not found:", data.error);
+                return;
+            }
 
             $('#productCode').val(data.code);  // Removed .prop('disabled', true)
             $('#productPrice').val(data.mrp);

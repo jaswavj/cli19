@@ -671,7 +671,7 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label mb-1" style="font-size:0.85rem;">Commission (Rs)</label>
-                        <input type="number" id="modal_commission" name="commission" class="form-control form-control-sm" step="0.01" value="0.00">
+                        <input type="number" id="modal_commission" name="commission" class="form-control form-control-sm" step="0.001" value="0.000">
                     </div>
                 </form>
             </div>

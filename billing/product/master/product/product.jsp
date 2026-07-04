@@ -151,7 +151,7 @@ String type = request.getParameter("type"); // success / warning / danger / info
                                 <small id="mrpConversionNote" class="text-muted d-block mt-1"></small>
                             </div>
                             <div class="col-md-6 ">
-                                <label style="font-size: 0.85rem;">Commission (Rs)</label><input type="number" step="0.01" name="commission" id="commissionInput" class="form-control" placeholder="0.00" style="padding: 7px 10px; font-size: 0.9rem;" value="0.00">
+                                <label style="font-size: 0.85rem;">Commission (Rs)</label><input type="number" step="0.001" name="commission" id="commissionInput" class="form-control" placeholder="0.000" style="padding: 7px 10px; font-size: 0.9rem;" value="0.000">
                                 <small id="commissionConversionNote" class="text-muted d-block mt-1"></small>
                             </div>
                             <input type="hidden" id="discType" name="discType" value="0">
@@ -601,7 +601,6 @@ String type = request.getParameter("type"); // success / warning / danger / info
         form.querySelector('[name="productCode"]').value = product.prodCode || '';
         form.querySelector('[name="productCode"]').placeholder = '';
         form.querySelector('[name="hsn"]').value = product.hsn || '';
-        form.querySelector('[name="commission"]').value = product.commission || '0.00';
         form.querySelector('[name="discValue"]').value = '0.00';
         form.querySelector('[name="stock"]').value = '';
         form.querySelector('[name="stock"]').removeAttribute('required');
@@ -630,10 +629,13 @@ String type = request.getParameter("type"); // success / warning / danger / info
         const convertionCalculation = selectedUnitOption ? parseFloat(selectedUnitOption.getAttribute('data-convertion-calculation') || '0') : 0;
         const parsedCost = parseFloat(product.cost || '0');
         const parsedMrp = parseFloat(product.mrp || '0');
+        const parsedCommission = parseFloat(product.commission || '0');
         const editCost = (!isNaN(convertionCalculation) && convertionCalculation > 0 && !isNaN(parsedCost)) ? (parsedCost * convertionCalculation) : parsedCost;
         const editMrp = (!isNaN(convertionCalculation) && convertionCalculation > 0 && !isNaN(parsedMrp)) ? (parsedMrp * convertionCalculation) : parsedMrp;
+        const editCommission = (!isNaN(convertionCalculation) && convertionCalculation > 0 && !isNaN(parsedCommission)) ? (parsedCommission * convertionCalculation) : parsedCommission;
         form.querySelector('[name="cost"]').value = !isNaN(editCost) ? editCost : '';
         form.querySelector('[name="mrp"]').value = !isNaN(editMrp) ? editMrp : '';
+        form.querySelector('[name="commission"]').value = !isNaN(editCommission) ? editCommission : '0.000';
 
         handleUnitChange(unitSelect);
 
@@ -690,7 +692,7 @@ String type = request.getParameter("type"); // success / warning / danger / info
         document.getElementById('discValue').readOnly = true;
 
         // Reset commission
-        document.getElementById('commissionInput').value = '0.00';
+        document.getElementById('commissionInput').value = '0.000';
 
         // Reset labels
         document.getElementById('stockLabel').textContent = 'Stock';

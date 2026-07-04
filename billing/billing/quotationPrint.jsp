@@ -77,24 +77,25 @@ for(Vector prod : quotDetails){
     <title>Quotation - <%= quotNo %></title>
     <style>
         @page { size: A5; margin: 8mm; }
-        body { font-family: Arial, sans-serif; font-size: 11px; margin: 0; padding: 4px; color: #000; }
+        body { font-family: Arial, sans-serif; font-size: 13px; margin: 0; padding: 4px; color: #000; }
         .container { width: 100%; }
         .company-block { text-align: center; margin-bottom: 4px; }
-        .company-name { font-size: 15px; font-weight: bold; text-transform: uppercase; }
-        .company-addr { font-size: 10px; line-height: 1.5; }
+        .company-name { font-size: 18px; font-weight: bold; text-transform: uppercase; }
+        .company-addr { font-size: 12px; line-height: 1.5; }
         .dash-sep { border: none; border-top: 1px dashed #000; margin: 4px 0; }
-        .title-row { display: flex; justify-content: space-between; align-items: flex-start; font-size: 10px; margin: 4px 0; }
-        .quot-title { font-size: 15px; font-weight: bold; text-align: center; text-transform: uppercase; flex: 1; }
-        est-table, .quot-table { width: 100%; border-collapse: collapse; font-size: 10px; }
-        .quot-table th { text-align: left; padding: 2px 4px; border-bottom: 1px dashed #000; border-top: 1px dashed #000; font-weight: bold; white-space: nowrap; }
-        .quot-table td { padding: 2px 4px; vertical-align: top; }
-        .num { text-align: right; }
-        .ctr { text-align: center; }
-        .summary-table { width: 65%; margin-left: auto; font-size: 10px; border-collapse: collapse; margin-top: 3px; }
-        .summary-table td { padding: 2px 4px; }
+        .title-row { display: flex; justify-content: space-between; align-items: flex-start; font-size: 13px; margin: 4px 0; }
+        .quot-title { font-size: 18px; font-weight: bold; text-align: center; text-transform: uppercase; flex: 1; }
+        .quot-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 13px; }
+        .quot-table th { text-align: left; padding: 3px 4px; border-bottom: 1px dashed #000; border-top: 1px dashed #000; font-weight: bold; white-space: nowrap; }
+        .quot-table td { padding: 3px 4px; vertical-align: top; }
+        .quot-table .num { text-align: right; }
+        .quot-table .ctr { text-align: center; }
+        .quot-table tfoot td { border-top: 1px dashed #000; font-weight: bold; }
+        .summary-table { width: 65%; margin-left: auto; font-size: 13px; border-collapse: collapse; margin-top: 3px; }
+        .summary-table td { padding: 3px 5px; font-weight: bold; }
         .summary-table .val { text-align: right; }
-        .net-row td { font-weight: bold; font-size: 12px; border-top: 1px dashed #000; }
-        .thank-you { text-align: center; font-size: 11px; margin-top: 8px; }
+        .net-row td { font-weight: bold; font-size: 15px; border-top: 1px dashed #000; }
+        .thank-you { text-align: center; font-size: 13px; font-weight: bold; margin-top: 8px; }
         @media print { body { padding: 0; } }
     </style>
     <script>
@@ -105,12 +106,7 @@ for(Vector prod : quotDetails){
 <body>
 <div class="container">
     <!-- Company Header -->
-    <div class="company-block">
-        <% if (!companyName.isEmpty()) { %><div class="company-name"><%= companyName %></div><% } %>
-        <% if (!companyAddress.isEmpty()) { %><div class="company-addr"><%= companyAddress.replaceAll("\\r?\\n", ", ") %></div><% } %>
-        <% if (!companyPhone.isEmpty()) { %><div class="company-addr">Ph: <%= companyPhone %></div><% } %>
-    </div>
-    <hr class="dash-sep">
+    
     <!-- Title & Info Row -->
     <div class="title-row">
         <div style="line-height:1.7;">
@@ -120,18 +116,26 @@ for(Vector prod : quotDetails){
             <div>Phone: <%= cusPhone %></div>
             <% } %>
         </div>
-        <div class="quot-title">QUOTATION</div>
+        <div class="quot-title">ESTIMATE</div>
         <div style="text-align:right; line-height:1.7;">
             <div>Date: <%= quotDate %></div>
             <div>Time: <%= quotTime %></div>
         </div>
     </div>
-    <hr class="dash-sep">
+    
     <!-- Items Table -->
     <table class="quot-table">
+        <colgroup>
+            <col style="width:7%">
+            <col style="width:auto">
+            <col style="width:13%">
+            <col style="width:13%">
+            <col style="width:13%">
+            <col style="width:15%">
+        </colgroup>
         <thead>
             <tr>
-                <th>Sno</th>
+                <th class="ctr">Sno</th>
                 <th>Description</th>
                 <th class="num">Rate</th>
                 <th class="num">Qty</th>
@@ -159,9 +163,14 @@ for(Vector prod : quotDetails){
             </tr>
             <% } %>
         </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3">total.Qty :</td>
+                <td class="num"><%= df.format(totalQty) %></td>
+                <td colspan="2"></td>
+            </tr>
+        </tfoot>
     </table>
-    <hr class="dash-sep">
-    <div style="font-size:10px;">t.Qty &nbsp;: <%= df.format(totalQty) %></div>
     <hr class="dash-sep">
     <!-- Summary -->
     <table class="summary-table">

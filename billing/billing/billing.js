@@ -1357,83 +1357,84 @@ function previewBill() {
 }
 
 function printQuotation() {
-    // Get customer details
     const customerName = document.getElementById("customerName").value.trim() || "-";
     const customerPhone = document.getElementById("customerPhn").value.trim() || "-";
     const extraDisc = document.getElementById("finalDiscount").value || "0";
-    
-    // Collect all items from the bill table
+    const priceTotal = document.getElementById("priceTotal").value || "0";
+    const discountTotal = document.getElementById("discountTotal").value || "0";
+    const payableAmount = document.getElementById("payableAmount").value || "0";
+
     const billBody = document.getElementById("billBody");
-    const rows = billBody.querySelectorAll("tr:not(.empty-row)");
-    
+    const rows = billBody.querySelectorAll("tr.bill-item-row, tr.item-row");
+
     if (rows.length === 0) {
-        alert("No items selected! Please add items to print quotation.");
+        Swal.fire({
+            title: 'No Items',
+            text: 'Please add items to print estimate.',
+            icon: 'warning',
+            confirmButtonText: 'OK'
+        });
         return;
     }
-    
+
     const items = [];
-    rows.forEach((row, index) => {
+    rows.forEach((row) => {
         const cells = row.querySelectorAll("td");
-        if (cells.length >= 8) {
-            // Extract data from table cells
-            const code = cells[1].textContent.trim();
-            const productId = cells[1].getAttribute('data-id') || '0';
-            const name = cells[2].textContent.trim();
-            const qty = parseInt(cells[3].textContent.trim()) || 0;
-            const priceText = cells[4].textContent.replace('₹', '').trim();
-            const price = parseFloat(priceText) || 0;
-            const discountText = cells[5].textContent.replace('₹', '').trim();
-            const discount = parseFloat(discountText) || 0;
-            const totalText = cells[7].textContent.replace('₹', '').trim();
-            const total = parseFloat(totalText) || 0;
-            
-            items.push({
-                code: code,
-                name: name,
-                qty: qty,
-                price: price,
-                discount: discount,
-                total: total,
-                productId: productId
-            });
-        }
+        if (cells.length < 8) return;
+
+        const code = cells[1].textContent.trim();
+        const productId = cells[1].getAttribute('data-id') || row.dataset.productId || '0';
+        const name = cells[2].getAttribute('data-name') || cells[2].textContent.trim();
+        const qty = parseFloat(row.dataset.qty || row.dataset.quantity) || 0;
+        const price = parseFloat(row.dataset.price) || 0;
+        const discInp = row.querySelector('.disc-inp');
+        const discount = discInp
+            ? (parseFloat(discInp.value) || 0)
+            : (parseFloat(row.dataset.discount) || 0);
+        const total = parseFloat(row.dataset.total) || 0;
+
+        items.push({
+            code: code,
+            name: name,
+            qty: qty,
+            price: price,
+            discount: discount,
+            total: total,
+            productId: productId
+        });
     });
-    
-    // Create form to submit data
+
+    if (items.length === 0) {
+        Swal.fire({
+            title: 'No Items',
+            text: 'Please add items to print estimate.',
+            icon: 'warning',
+            confirmButtonText: 'OK'
+        });
+        return;
+    }
+
     const form = document.createElement("form");
     form.method = "POST";
     form.action = "quotation.jsp";
     form.target = "QuotationWindow";
-    
-    // Add customer name
-    const custNameInput = document.createElement("input");
-    custNameInput.type = "hidden";
-    custNameInput.name = "customerName";
-    custNameInput.value = customerName;
-    form.appendChild(custNameInput);
-    
-    // Add customer phone
-    const custPhoneInput = document.createElement("input");
-    custPhoneInput.type = "hidden";
-    custPhoneInput.name = "customerPhone";
-    custPhoneInput.value = customerPhone;
-    form.appendChild(custPhoneInput);
-    
-    // Add extra discount
-    const extraDiscInput = document.createElement("input");
-    extraDiscInput.type = "hidden";
-    extraDiscInput.name = "extraDisc";
-    extraDiscInput.value = extraDisc;
-    form.appendChild(extraDiscInput);
-    
-    // Add items as JSON
-    const itemsInput = document.createElement("input");
-    itemsInput.type = "hidden";
-    itemsInput.name = "items";
-    itemsInput.value = JSON.stringify(items);
-    form.appendChild(itemsInput);
-    
-    // Submit form
+
+    function addHidden(name, value) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+    }
+
+    addHidden("customerName", customerName);
+    addHidden("customerPhone", customerPhone);
+    addHidden("extraDisc", extraDisc);
+    addHidden("priceTotal", priceTotal);
+    addHidden("discountTotal", discountTotal);
+    addHidden("payableAmount", payableAmount);
+    addHidden("items", JSON.stringify(items));
+
     document.body.appendChild(form);
     window.open("", "QuotationWindow", "width=800,height=600");
     form.submit();

@@ -568,6 +568,9 @@ int userDiscPer = (uid != null) ? userBn.getUserDiscPer(uid) : 100;
                         <i class="fa-solid fa-print"></i> PRINT HOLD
                     </button>
                 </div>
+                <button class="bb bb-outline" onclick="printQuotation()" title="Print estimate for all items without holding">
+                    <i class="fa-solid fa-file-invoice"></i> ESTIMATE
+                </button>
                 <button type="button" class="bb bb-outline" onclick="newBill()">
                     <i class="fa-solid fa-rotate"></i> NEW
                 </button>

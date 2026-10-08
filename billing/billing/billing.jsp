@@ -7,6 +7,9 @@ String contextPaths = request.getContextPath();
 Integer uid = (Integer) session.getAttribute("userId");
 Vector attenderList = prod.getActiveAttenders();
 int userDiscPer = (uid != null) ? userBn.getUserDiscPer(uid) : 100;
+String head1 = (uid != null) ? userBn.getHead1() : "Category";
+String head2 = (uid != null) ? userBn.getHead2() : "Brand";
+String head3 = (uid != null) ? userBn.getHead3() : "Product";
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -422,9 +425,14 @@ int userDiscPer = (uid != null) ? userBn.getUserDiscPer(uid) : 100;
 
         <!-- Row 2: Product entry -->
         <div class="prod-row">
-            <div class="fg" style="flex:.8;min-width:88px;">
+            <div class="fg" style="flex:.95;min-width:100px;">
                 <span class="fg-lbl">Code</span>
-                <input type="text" id="productCode" class="fg-inp" placeholder="Scan / Type" autocomplete="off">
+                <div style="display:flex;gap:4px;align-items:stretch;">
+                    <input type="text" id="productCode" class="fg-inp" placeholder="Scan / Type" autocomplete="off" style="flex:1;min-width:0;">
+                    <button type="button" class="bb bb-outline" onclick="openBillingAddProductModal()" title="Add new product" style="padding:0 10px;flex-shrink:0;">
+                        <i class="fa-solid fa-box"></i>
+                    </button>
+                </div>
             </div>
             <div class="fg" style="flex:2;min-width:140px;">
                 <span class="fg-lbl">Item Name</span>
@@ -590,6 +598,7 @@ int userDiscPer = (uid != null) ? userBn.getUserDiscPer(uid) : 100;
      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <%@ include file="duplicateBillModal.jsp" %>
 <%@ include file="quotationList.jsp" %>
+<%@ include file="addProductModal.jsp" %>
 
 <!-- Order List Modal -->
 <div class="modal fade" id="orderListModal" tabindex="-1" aria-labelledby="orderListModalLabel" aria-hidden="true">
@@ -701,6 +710,7 @@ int userDiscPer = (uid != null) ? userBn.getUserDiscPer(uid) : 100;
 </script>
 <script src="bluetoothPrinter.js"></script>
 <script src="billing.js"></script>
+<script src="billingAddProduct.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     // Focus barcode input on load

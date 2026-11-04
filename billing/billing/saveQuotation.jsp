@@ -92,10 +92,11 @@ try {
         double price = jsonObj.getDouble("price");
         double discount = jsonObj.getDouble("discount");
         double total = jsonObj.getDouble("total");
+        String displayUnit = jsonObj.optString("unit", "").trim();
         int gst = bill.getProductGST(productId); // Fetch GST from database
         double cost = 0.0; // Cost not needed for quotation
         
-        items.add(new ProductItem(productId, qty, price, discount, total, gst, cost));
+        items.add(new ProductItem(productId, qty, price, discount, total, gst, cost, displayUnit.isEmpty() ? null : displayUnit));
     }
 
     // Check if products were added

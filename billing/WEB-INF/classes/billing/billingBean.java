@@ -4805,18 +4805,23 @@ public String saveQuotation(List<ProductItem> items, String customerName, String
         ps.close();
         
         // Insert quotation details
-        String sqlDetail = "INSERT INTO prod_quotation_details (quot_id, prod_id, qty, price, disc, total, gst, is_cancelled) " +
-                          "VALUES (?, ?, ?, ?, ?, ?, ?, 0)";
+        String sqlDetail = "INSERT INTO prod_quotation_details (quot_id, prod_id, qty, display_unit, price, disc, total, gst, is_cancelled) " +
+                          "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)";
         ps = con.prepareStatement(sqlDetail);
         
         for (ProductItem item : items) {
             ps.setInt(1, quotId);
             ps.setInt(2, item.productId);
             ps.setBigDecimal(3, item.qty);
-            ps.setDouble(4, item.price);
-            ps.setDouble(5, item.discount);
-            ps.setDouble(6, item.total);
-            ps.setInt(7, item.gst);
+            if (item.displayUnit != null && !item.displayUnit.trim().isEmpty()) {
+                ps.setString(4, item.displayUnit.trim());
+            } else {
+                ps.setNull(4, java.sql.Types.VARCHAR);
+            }
+            ps.setDouble(5, item.price);
+            ps.setDouble(6, item.discount);
+            ps.setDouble(7, item.total);
+            ps.setInt(8, item.gst);
             ps.addBatch();
         }
         
@@ -5047,9 +5052,10 @@ public Vector getQuotationDetails(int quotId) throws Exception {
         con = util.DBConnectionManager.getConnectionFromPool();
         
         String sql = "SELECT d.id, d.prod_id, p.name AS prod_name, p.code, " +
-                     "d.qty, d.price, d.disc, d.total, d.gst " +
+                     "d.qty, d.price, d.disc, d.total, d.gst, IFNULL(u.name, '') AS unit_name, IFNULL(d.display_unit, '') AS display_unit " +
                      "FROM prod_quotation_details d " +
                      "JOIN prod_product p ON p.id = d.prod_id " +
+                     "LEFT JOIN prod_units u ON u.id = p.unit_id " +
                      "WHERE d.quot_id = ? AND d.is_cancelled = 0";
         
         ps = con.prepareStatement(sql);
@@ -5067,6 +5073,8 @@ public Vector getQuotationDetails(int quotId) throws Exception {
             row.add(rs.getDouble("disc"));
             row.add(rs.getDouble("total"));
             row.add(rs.getInt("gst"));
+            row.add(rs.getString("unit_name"));
+            row.add(rs.getString("display_unit"));
             details.add(row);
         }
         

@@ -1,5 +1,5 @@
 ﻿<%@ page language="java" contentType="text/html; charset=UTF-8"%>
-<%@ page language="java" import="java.util.*"%>
+<%@ page language="java" import="java.util.*, java.sql.*"%>
 <%@ page language="java" import="java.text.DecimalFormat"%>
 
 <jsp:useBean id="bill" class="billing.billingBean" />
@@ -32,6 +32,65 @@ String quotTime = quotHeader.get(9).toString();
 
 // Get quotation details
 Vector<Vector> quotDetails = bill.getQuotationDetails(quotId);
+
+// Unit labels for hold print (convertion unit when set, else base unit name)
+HashMap<Integer, String> unitByProductId = new HashMap<>();
+Connection unitCon = null;
+PreparedStatement unitPs = null;
+ResultSet unitRs = null;
+try {
+    unitCon = util.DBConnectionManager.getConnectionFromPool();
+    String unitSqlWithSaved =
+        "SELECT p.id, IFNULL(d.display_unit, '') AS saved_unit, IFNULL(u.name, '') AS unit_name, IFNULL(u.convertion_unit, '') AS conv_unit " +
+        "FROM prod_quotation_details d " +
+        "INNER JOIN prod_product p ON p.id = d.prod_id " +
+        "LEFT JOIN prod_units u ON u.id = p.unit_id " +
+        "WHERE d.quot_id = ? AND IFNULL(d.is_cancelled, 0) = 0";
+    String unitSqlFallback =
+        "SELECT p.id, IFNULL(u.name, '') AS unit_name, IFNULL(u.convertion_unit, '') AS conv_unit " +
+        "FROM prod_quotation_details d " +
+        "INNER JOIN prod_product p ON p.id = d.prod_id " +
+        "LEFT JOIN prod_units u ON u.id = p.unit_id " +
+        "WHERE d.quot_id = ? AND IFNULL(d.is_cancelled, 0) = 0";
+    boolean useSavedUnit = true;
+    try {
+        unitPs = unitCon.prepareStatement(unitSqlWithSaved);
+        unitPs.setInt(1, quotId);
+        unitRs = unitPs.executeQuery();
+    } catch (SQLException colEx) {
+        useSavedUnit = false;
+        if (unitPs != null) try { unitPs.close(); } catch (SQLException ignored) {}
+        unitPs = unitCon.prepareStatement(unitSqlFallback);
+        unitPs.setInt(1, quotId);
+        unitRs = unitPs.executeQuery();
+    }
+    while (unitRs.next()) {
+        int pid = unitRs.getInt(1);
+        String label;
+        if (useSavedUnit) {
+            String savedUnit = unitRs.getString(2);
+            String unitName = unitRs.getString(3);
+            String convUnit = unitRs.getString(4);
+            label = (savedUnit != null && !savedUnit.trim().isEmpty())
+                ? savedUnit.trim()
+                : ((convUnit != null && !convUnit.trim().isEmpty())
+                    ? convUnit.trim()
+                    : (unitName != null ? unitName.trim() : ""));
+        } else {
+            String unitName = unitRs.getString(2);
+            String convUnit = unitRs.getString(3);
+            label = (convUnit != null && !convUnit.trim().isEmpty())
+                ? convUnit.trim()
+                : (unitName != null ? unitName.trim() : "");
+        }
+        unitByProductId.put(pid, label);
+    }
+} catch (Exception ignored) {
+} finally {
+    if (unitRs != null) try { unitRs.close(); } catch (SQLException ignored) {}
+    if (unitPs != null) try { unitPs.close(); } catch (SQLException ignored) {}
+    if (unitCon != null) try { unitCon.close(); } catch (Exception ignored) {}
+}
 
 // Fetch company details
 Vector companyDetails = userBean.getCompanyDetails();
@@ -148,7 +207,16 @@ for(Vector prod : quotDetails){
             int rowNum = 1;
             for(Vector prod : quotDetails){
                 String prodName = prod.get(2).toString();
+                int prodId = Integer.parseInt(prod.get(1).toString());
                 double qty = Double.parseDouble(prod.get(4).toString());
+                String unitLabel = unitByProductId.getOrDefault(prodId, "");
+                if (unitLabel.isEmpty() && prod.size() > 10 && prod.get(10) != null) {
+                    unitLabel = prod.get(10).toString().trim();
+                }
+                if (unitLabel.isEmpty() && prod.size() > 9 && prod.get(9) != null) {
+                    unitLabel = prod.get(9).toString().trim();
+                }
+                String qtyDisplay = df.format(qty) + (unitLabel.isEmpty() ? "" : " " + unitLabel);
                 double price = Double.parseDouble(prod.get(5).toString());
                 double disc = Double.parseDouble(prod.get(6).toString());
                 double itemTotal = Double.parseDouble(prod.get(7).toString());
@@ -157,7 +225,7 @@ for(Vector prod : quotDetails){
                 <td class="ctr"><%= rowNum++ %></td>
                 <td><%= prodName %></td>
                 <td class="num"><%= df.format(price) %></td>
-                <td class="num"><%= df.format(qty) %></td>
+                <td class="num"><%= qtyDisplay %></td>
                 <td class="num"><%= df.format(disc) %></td>
                 <td class="num"><%= df.format(itemTotal) %></td>
             </tr>

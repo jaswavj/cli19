@@ -763,7 +763,6 @@ int globalCount = 1;
                 <th>Description</th>
                 <th class="num">Rate</th>
                 <th class="num">Qty</th>
-                <th class="ctr">Uom</th>
                 <th class="num">Dis%</th>
                 <th class="num">Amount</th>
             </tr>
@@ -786,8 +785,7 @@ int globalCount = 1;
                 <td><%= simpleSno++ %></td>
                 <td><%= spName %></td>
                 <td class="num"><%= df.format(spItemPrice) %></td>
-                <td class="num"><%= spQty %></td>
-                <td class="ctr"><%= spUnit %></td>
+                <td class="num"><%= spQty %><% if (spUnit != null && !spUnit.trim().isEmpty()) { %> <%= spUnit.trim() %><% } %></td>
                 <td class="num"><%= spDiscPct %></td>
                 <td class="num"><%= df.format(spItemTotal) %></td>
             </tr>

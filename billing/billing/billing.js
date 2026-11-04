@@ -360,7 +360,7 @@ function addProduct() {
     grandTotal += total;
 
     const row = `
-        <tr id="row${count}" data-batch-id="${productBatch}" data-commission="${productCommission}" data-subtotal="${productSubtotal}" data-discount="0" data-total="${total}" data-qty="${actualQty}" data-price="${price}" class="bill-item-row" style="display: table; width: 100%; table-layout: fixed; cursor: pointer;">
+        <tr id="row${count}" data-batch-id="${productBatch}" data-commission="${productCommission}" data-subtotal="${productSubtotal}" data-discount="0" data-total="${total}" data-qty="${actualQty}" data-price="${price}" data-unit="${displayUnit}" data-display-qty="${displayQty}" class="bill-item-row" style="display: table; width: 100%; table-layout: fixed; cursor: pointer;">
             <td style="width: 5%;">${count}</td>
             <td style="width: 10%;" data-id="${productId}">${code}</td>
             <td style="width: 22%;" data-name="${name}">${name}</td>
@@ -1386,6 +1386,9 @@ function printQuotation() {
         const productId = cells[1].getAttribute('data-id') || row.dataset.productId || '0';
         const name = cells[2].getAttribute('data-name') || cells[2].textContent.trim();
         const qty = parseFloat(row.dataset.qty || row.dataset.quantity) || 0;
+        const displayQty = row.dataset.displayQty || qty;
+        const unit = (row.dataset.unit || '').trim();
+        const qtyCellText = cells[3] ? cells[3].textContent.trim() : '';
         const price = parseFloat(row.dataset.price) || 0;
         const discInp = row.querySelector('.disc-inp');
         const discount = discInp
@@ -1397,6 +1400,9 @@ function printQuotation() {
             code: code,
             name: name,
             qty: qty,
+            displayQty: displayQty,
+            unit: unit,
+            qtyDisplay: qtyCellText,
             price: price,
             discount: discount,
             total: total,
@@ -1908,7 +1914,8 @@ function saveQuotation() {
     rows.forEach(row => {
         const productId = parseInt(row.dataset.productId);
         const qtyText = row.querySelector('td:nth-child(4)').textContent.trim();
-        const qty = parseFloat(qtyText.split(' ')[0]); // Remove unit suffix
+        const qty = parseFloat(row.dataset.displayQty || row.dataset.qty || qtyText.split(/\s+/)[0] || 0);
+        const unit = (row.dataset.unit || '').trim();
         const priceText = row.querySelector('td:nth-child(5)').textContent.replace('₹', '').trim();
         const price = parseFloat(priceText);
         const discInp = row.querySelector('td:nth-child(6) .disc-inp');
@@ -1919,6 +1926,7 @@ function saveQuotation() {
         products.push({
             productId: productId,
             qty: qty,
+            unit: unit,
             price: price,
             discount: discount,
             total: total

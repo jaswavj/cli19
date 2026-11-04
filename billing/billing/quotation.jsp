@@ -137,6 +137,12 @@ if (payable <= 0) payable = Math.max(0, priceTotal - prodDisc - extraDisc);
                 JSONObject item = items.getJSONObject(i);
                 String prodName = item.optString("name", "");
                 double qty = item.optDouble("qty", 0);
+                double displayQty = item.has("displayQty") ? item.optDouble("displayQty", qty) : qty;
+                String unit = item.optString("unit", "").trim();
+                String qtyDisplay = item.optString("qtyDisplay", "").trim();
+                if (qtyDisplay.isEmpty()) {
+                    qtyDisplay = df.format(displayQty) + (unit.isEmpty() ? "" : " " + unit);
+                }
                 double price = item.optDouble("price", 0);
                 double disc = item.optDouble("discount", 0);
                 double itemTotal = item.optDouble("total", 0);
@@ -145,7 +151,7 @@ if (payable <= 0) payable = Math.max(0, priceTotal - prodDisc - extraDisc);
                 <td class="ctr"><%= rowNum++ %></td>
                 <td><%= prodName %></td>
                 <td class="num"><%= df.format(price) %></td>
-                <td class="num"><%= df.format(qty) %></td>
+                <td class="num"><%= qtyDisplay %></td>
                 <td class="num"><%= df.format(disc) %></td>
                 <td class="num"><%= df.format(itemTotal) %></td>
             </tr>

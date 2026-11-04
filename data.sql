@@ -1191,6 +1191,7 @@ CREATE TABLE `prod_quotation_details` (
   `quot_id` int NOT NULL,
   `prod_id` int NOT NULL,
   `qty` decimal(10,2) NOT NULL,
+  `display_unit` varchar(50) DEFAULT NULL,
   `price` double(10,3) NOT NULL,
   `disc` double(10,3) DEFAULT NULL,
   `total` double(10,3) DEFAULT NULL,

@@ -4804,24 +4804,29 @@ public String saveQuotation(List<ProductItem> items, String customerName, String
         rs.close();
         ps.close();
         
-        // Insert quotation details
-        String sqlDetail = "INSERT INTO prod_quotation_details (quot_id, prod_id, qty, display_unit, price, disc, total, gst, is_cancelled) " +
-                          "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)";
+        // Insert quotation details (display_unit is optional on older databases)
+        boolean hasDisplayUnit = quotationDetailsHasDisplayUnit(con);
+        String sqlDetail = hasDisplayUnit
+            ? "INSERT INTO prod_quotation_details (quot_id, prod_id, qty, display_unit, price, disc, total, gst, is_cancelled) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)"
+            : "INSERT INTO prod_quotation_details (quot_id, prod_id, qty, price, disc, total, gst, is_cancelled) VALUES (?, ?, ?, ?, ?, ?, ?, 0)";
         ps = con.prepareStatement(sqlDetail);
         
         for (ProductItem item : items) {
-            ps.setInt(1, quotId);
-            ps.setInt(2, item.productId);
-            ps.setBigDecimal(3, item.qty);
-            if (item.displayUnit != null && !item.displayUnit.trim().isEmpty()) {
-                ps.setString(4, item.displayUnit.trim());
-            } else {
-                ps.setNull(4, java.sql.Types.VARCHAR);
+            int col = 1;
+            ps.setInt(col++, quotId);
+            ps.setInt(col++, item.productId);
+            ps.setBigDecimal(col++, item.qty);
+            if (hasDisplayUnit) {
+                if (item.displayUnit != null && !item.displayUnit.trim().isEmpty()) {
+                    ps.setString(col++, item.displayUnit.trim());
+                } else {
+                    ps.setNull(col++, java.sql.Types.VARCHAR);
+                }
             }
-            ps.setDouble(5, item.price);
-            ps.setDouble(6, item.discount);
-            ps.setDouble(7, item.total);
-            ps.setInt(8, item.gst);
+            ps.setDouble(col++, item.price);
+            ps.setDouble(col++, item.discount);
+            ps.setDouble(col++, item.total);
+            ps.setInt(col++, item.gst);
             ps.addBatch();
         }
         
@@ -5042,6 +5047,23 @@ public Vector getQuotationHeader(int quotId) throws Exception {
     return header;
 }
 
+private boolean quotationDetailsHasDisplayUnit(Connection con) {
+    PreparedStatement check = null;
+    ResultSet cols = null;
+    try {
+        check = con.prepareStatement(
+            "SELECT COUNT(*) FROM information_schema.COLUMNS " +
+            "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'prod_quotation_details' AND COLUMN_NAME = 'display_unit'");
+        cols = check.executeQuery();
+        return cols.next() && cols.getInt(1) > 0;
+    } catch (Exception e) {
+        return false;
+    } finally {
+        try { if (cols != null) cols.close(); } catch (Exception ignored) {}
+        try { if (check != null) check.close(); } catch (Exception ignored) {}
+    }
+}
+
 public Vector getQuotationDetails(int quotId) throws Exception {
     Connection con = null;
     PreparedStatement ps = null;
@@ -5051,12 +5073,20 @@ public Vector getQuotationDetails(int quotId) throws Exception {
     try {
         con = util.DBConnectionManager.getConnectionFromPool();
         
-        String sql = "SELECT d.id, d.prod_id, p.name AS prod_name, p.code, " +
-                     "d.qty, d.price, d.disc, d.total, d.gst, IFNULL(u.name, '') AS unit_name, IFNULL(d.display_unit, '') AS display_unit " +
-                     "FROM prod_quotation_details d " +
-                     "JOIN prod_product p ON p.id = d.prod_id " +
-                     "LEFT JOIN prod_units u ON u.id = p.unit_id " +
-                     "WHERE d.quot_id = ? AND d.is_cancelled = 0";
+        boolean hasDisplayUnit = quotationDetailsHasDisplayUnit(con);
+        String sql = hasDisplayUnit
+            ? "SELECT d.id, d.prod_id, p.name AS prod_name, p.code, " +
+              "d.qty, d.price, d.disc, d.total, d.gst, IFNULL(u.name, '') AS unit_name, IFNULL(d.display_unit, '') AS display_unit " +
+              "FROM prod_quotation_details d " +
+              "JOIN prod_product p ON p.id = d.prod_id " +
+              "LEFT JOIN prod_units u ON u.id = p.unit_id " +
+              "WHERE d.quot_id = ? AND d.is_cancelled = 0"
+            : "SELECT d.id, d.prod_id, p.name AS prod_name, p.code, " +
+              "d.qty, d.price, d.disc, d.total, d.gst, IFNULL(u.name, '') AS unit_name, '' AS display_unit " +
+              "FROM prod_quotation_details d " +
+              "JOIN prod_product p ON p.id = d.prod_id " +
+              "LEFT JOIN prod_units u ON u.id = p.unit_id " +
+              "WHERE d.quot_id = ? AND d.is_cancelled = 0";
         
         ps = con.prepareStatement(sql);
         ps.setInt(1, quotId);
